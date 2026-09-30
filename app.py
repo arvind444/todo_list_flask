@@ -1,26 +1,47 @@
+import os
+import ssl
+from datetime import datetime, date, timedelta
+import pymysql
+from dotenv import load_dotenv
 from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, date
-import os
-import ssl
-import pymysql
-from dotenv import load_dotenv
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 load_dotenv()
 pymysql.install_as_MySQLdb()
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")
-app.config['SESSION_COOKIE_SECURE'] = os.getenv("SESSION_COOKIE_SECURE")
-app.config['SESSION_COOKIE_HTTPONLY'] = os.getenv("SESSION_COOKIE_HTTPONLY")
-app.config['SESSION_COOKIE_SAMESITE'] = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
-app.config['PERMANENT_SESSION_LIFETIME'] = os.getenv("PERMANENT_SESSION_LIFETIME", )
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = os.getenv("SQLALCHEMY_TRACK_MODIFICATIONS")
+# Reverse proxy handling for Render
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
+# ----------------- Configuration -----------------
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "penguin-planner-secret-key-987")
+
+# Database URI configuration
+raw_db_uri = os.getenv("SQLALCHEMY_DATABASE_URI") or os.getenv("DATABASE_URL")
+
+if raw_db_uri.startswith("mysql://"):
+    raw_db_uri = raw_db_uri.replace("mysql://", "mysql+pymysql://", 1)
+
+# Remove URL query parameters that might conflict with engine connect_args
+app.config['SQLALCHEMY_DATABASE_URI'] = raw_db_uri.split('?')[0]
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Security & Session cookie settings (parse booleans and integers properly)
+app.config['SESSION_COOKIE_SECURE'] = os.getenv("SESSION_COOKIE_SECURE", "True").lower() in ("true", "1", "yes")
+app.config['SESSION_COOKIE_HTTPONLY'] = os.getenv("SESSION_COOKIE_HTTPONLY", "True").lower() in ("true", "1", "yes")
+app.config['SESSION_COOKIE_SAMESITE'] = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
+
+session_lifetime = os.getenv("PERMANENT_SESSION_LIFETIME", "86400")
+try:
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(seconds=int(session_lifetime))
+except ValueError:
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
+
+# SSL context for Aiven Cloud MySQL
 ssl_context = ssl.create_default_context()
 ssl_context.check_hostname = False
 ssl_context.verify_mode = ssl.CERT_NONE
@@ -91,6 +112,14 @@ class WishItem(db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+# Auto-create tables on launch (Runs for both Gunicorn and local development)
+with app.app_context():
+    try:
+        db.create_all()
+        print("Database tables initialized successfully.")
+    except Exception as e:
+        print(f"Error during table initialization: {e}")
+
 # ----------------- Auth Routes -----------------
 @app.route('/')
 def home():
@@ -120,19 +149,30 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('buy_list'))
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
         
-        if User.query.filter_by(username=username).first():
-            flash('Username is already taken.', 'error')
+        if not username or not password:
+            flash('Username and password are required.', 'error')
+            return redirect(url_for('register'))
+
+        try:
+            if User.query.filter_by(username=username).first():
+                flash('Username is already taken.', 'error')
+                return redirect(url_for('register'))
+                
+            hashed_password = generate_password_hash(password)
+            new_user = User(username=username, password_hash=hashed_password)
+            db.session.add(new_user)
+            db.session.commit()
+            flash('Account registered successfully! Please log in.', 'success')
+            return redirect(url_for('login'))
+        except Exception as e:
+            db.session.rollback()
+            print(f"Registration Error: {e}")
+            flash('An error occurred during registration. Please try again.', 'error')
             return redirect(url_for('register'))
             
-        hashed_password = generate_password_hash(password)
-        new_user = User(username=username, password_hash=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
-        flash('Account registered successfully! Please log in.', 'success')
-        return redirect(url_for('login'))
     return render_template('register.html')
 
 @app.route('/logout')
@@ -226,6 +266,4 @@ def wishlist_detail(item_id):
     return render_template('wishlist_detail.html', item=item)
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run()
+    app.run(debug=False)
