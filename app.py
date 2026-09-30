@@ -7,6 +7,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
+pymysql.install_as_MySQLdb()
 
 app = Flask(__name__)
 
