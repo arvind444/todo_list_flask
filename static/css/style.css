@@ -18,9 +18,8 @@ body {
     font-family: 'Nunito', sans-serif;
     color: #000000;
     min-height: 100vh;
-    min-height: 100dvh; /* Adapts dynamically to Motorola Chrome address/nav bars */
+    min-height: 100dvh;
     padding: 30px 50px 20px;
-    /* Safe-area insets for camera punch-holes and Android gesture navigation */
     padding-top: max(20px, env(safe-area-inset-top));
     padding-bottom: max(20px, env(safe-area-inset-bottom));
     padding-left: max(20px, env(safe-area-inset-left));
@@ -328,33 +327,67 @@ body {
     -moz-appearance: none;
 }
 
+/* Detail Form Action Buttons Container */
 .btn-row {
     display: flex;
-    gap: 12px;
-    margin-top: 24px;
-    max-width: 500px;
+    gap: 16px;
+    margin-top: 32px;
+    max-width: 600px;
     width: 100%;
 }
 
+/* Base Button Styles */
 .btn {
+    flex: 1;
     font-family: 'Gaegu', cursive;
-    font-size: 1.35rem;
+    font-size: 1.4rem;
     font-weight: 700;
-    padding: 10px 20px;
-    border-radius: 16px;
-    border: 3px solid #000000;
+    padding: 12px 18px;
+    border-radius: 18px;
+    border: 3.5px solid #000000;
     cursor: pointer;
     text-decoration: none;
     text-align: center;
-    min-height: 48px;
+    min-height: 52px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 4px 0 #000000;
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease;
+    user-select: none;
 }
 
-.btn-primary { background: #ffd152; color: #000; width: 100%; }
-.btn-secondary { background: #ffffff; color: #000; }
-.btn-danger { background: #ff9999; color: #000; }
+.btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #000000;
+}
+
+/* Save / Primary Button */
+.btn-primary { 
+    background: #ffd152; 
+    color: #000000; 
+}
+.btn-primary:hover {
+    background: #ffe082;
+}
+
+/* Delete / Danger Button */
+.btn-danger { 
+    background: #ff9999; 
+    color: #000000; 
+}
+.btn-danger:hover {
+    background: #ff7373;
+}
+
+/* Back / Secondary Button */
+.btn-secondary { 
+    background: #ffffff; 
+    color: #000000; 
+}
+.btn-secondary:hover {
+    background: #f0f0f0;
+}
 
 /* Clouds Footer */
 .clouds-container {
@@ -386,9 +419,7 @@ body {
 .alert-error { background: #ffd1d1; color: #a12b25; }
 .alert-success { background: #d4ffd1; color: #2c6e26; }
 
-/* ----------------------------------------------------
-   Responsive Media Queries for Mobile Screens
-   ---------------------------------------------------- */
+/* Responsive Media Queries */
 @media (max-width: 768px) {
     body {
         padding: 16px;
@@ -454,11 +485,11 @@ body {
 
     .btn-row {
         flex-direction: column;
-        gap: 10px;
+        gap: 14px;
+        margin-top: 28px;
     }
 
-    .btn-secondary, 
-    .btn-danger {
+    .btn {
         width: 100%;
     }
 }
