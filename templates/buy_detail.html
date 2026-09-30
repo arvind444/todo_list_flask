@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block header_title %}ITEM DETAILS{% endblock %}
+{% block header_title %}{{ current_user.username | upper }}'S BUY LIST Detail{% endblock %}
 
 {% block content %}
 {% if item.is_overdue %}
