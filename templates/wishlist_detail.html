@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block header_title %}WISH INFO{% endblock %}
+{% block header_title %}{{ current_user.username | upper }}'S WISH LIST Detail{% endblock %}
 
 {% block content %}
 {% if item.is_overdue %}
