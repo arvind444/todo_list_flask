@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block header_title %}{{ current_user.username | upper }}'S BUY LIST{% endblock %}
+
+{% block content %}
+<!-- Streamlined, Clean Input Banner -->
+<form method="POST" class="add-bar-card">
+    <div class="input-cell title-cell">
+        <label>What do you need to buy?</label>
+        <input type="text" name="title" placeholder="e.g. Canvas backpack, fresh milk..." required autocomplete="off">
+    </div>
+    <div class="input-cell date-cell">
+        <label>Complete by</label>
+        <input type="date" name="due_date">
+    </div>
+    <button type="submit" class="btn-add" title="Add item">+</button>
+</form>
+
+<ul class="item-list">
+    {% for item in items %}
+    <li class="item-row {% if item.is_overdue %}is-overdue{% endif %}">
+        <span class="checkbox-box {% if item.is_completed %}checked{% endif %}"></span>
+        <div class="item-info">
+            <div class="item-headline">
+                <a href="{{ url_for('buy_detail', item_id=item.id) }}" class="item-name {% if item.is_completed %}completed{% endif %}">
+                    {{ item.title }}
+                </a>
+                {% if item.is_overdue %}
+                    <span class="deadline-warning">not met the deadline</span>
+                {% endif %}
+            </div>
+            {% if item.due_date %}
+                <span class="due-hint">📅 Deadline: {{ item.due_date.strftime('%b %d, %Y') }}</span>
+            {% endif %}
+        </div>
+    </li>
+    {% else %}
+    <li class="empty-state">
+        Your buy list is currently empty. Add your first item above!
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block header_title %}JOIN US{% endblock %}
+
+{% block content %}
+<form method="POST">
+    <div class="form-group">
+        <label>Choose Username</label>
+        <input type="text" name="username" required autocomplete="off">
+    </div>
+    <div class="form-group">
+        <label>Choose Password</label>
+        <input type="password" name="password" required>
+    </div>
+    <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Register</button>
+    <div style="text-align: center; margin-top: 15px; font-size: 0.9rem;">
+        Already registered? <a href="{{ url_for('login') }}" style="color: #4a3b32; font-weight: bold;">Login</a>
+    </div>
+</form>
+{% endblock %}

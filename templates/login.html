@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block header_title %}LOGIN{% endblock %}
+
+{% block content %}
+<form method="POST">
+    <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="username" required autocomplete="off">
+    </div>
+    <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" required>
+    </div>
+    <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Sign In</button>
+    <div style="text-align: center; margin-top: 15px; font-size: 0.9rem;">
+        Need an account? <a href="{{ url_for('register') }}" style="color: #4a3b32; font-weight: bold;">Register</a>
+    </div>
+</form>
+{% endblock %}

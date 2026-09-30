@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block header_title %}WISH INFO{% endblock %}
+
+{% block content %}
+{% if item.is_overdue %}
+    <div class="alert alert-error" style="font-weight: bold;">
+        ⚠️ This goal has not met the deadline!
+    </div>
+{% endif %}
+
+<form method="POST">
+    <div class="form-group">
+        <label>Wish Item</label>
+        <input type="text" name="title" value="{{ item.title }}" required>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+        <div class="form-group" style="flex: 1;">
+            <label>When will it be completed?</label>
+            <input type="date" name="due_date" value="{{ item.due_date.strftime('%Y-%m-%d') if item.due_date else '' }}">
+        </div>
+        <div class="form-group" style="flex: 1;">
+            <label>Priority</label>
+            <select name="priority">
+                <option value="High" {% if item.priority == 'High' %}selected{% endif %}>High</option>
+                <option value="Medium" {% if item.priority == 'Medium' %}selected{% endif %}>Medium</option>
+                <option value="Low" {% if item.priority == 'Low' %}selected{% endif %}>Low</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Estimated Cost ($)</label>
+        <input type="number" step="0.01" name="estimated_cost" value="{{ item.estimated_cost }}">
+    </div>
+
+    <div class="form-group">
+        <label>Why do you want this?</label>
+        <textarea name="description">{{ item.description or '' }}</textarea>
+    </div>
+
+    <div class="form-group">
+        <label>Action Plan / Notes</label>
+        <textarea name="notes">{{ item.notes or '' }}</textarea>
+    </div>
+
+    <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+        <input type="checkbox" name="is_achieved" id="achieved" {% if item.is_achieved %}checked{% endif %} style="width: 18px; height: 18px;">
+        <label for="achieved" style="margin-bottom: 0;">Goal Achieved</label>
+    </div>
+
+    <div class="btn-row">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="submit" name="delete" value="true" class="btn btn-danger" onclick="return confirm('Delete this wish?');">Delete</button>
+        <a href="{{ url_for('wishlist') }}" class="btn btn-secondary">Back</a>
+    </div>
+</form>
+{% endblock %}

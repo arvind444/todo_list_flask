@@ -1,1 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Planner{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Top Header Bar -->
+    <header class="app-header">
+        <div class="title-pill">{% block header_title %}TO DO{% endblock %}</div>
+        <img src="{{ url_for('static', filename='images/penguin.svg') }}" alt="Penguin in Raincoat" class="penguin-mascot">
+    </header>
 
+    {% if current_user.is_authenticated %}
+    <!-- Spaced-out Floating Pill Navigation -->
+    <nav class="nav-bar">
+        <a href="{{ url_for('buy_list') }}" class="nav-pill {% if request.path == url_for('buy_list') %}active{% endif %}">
+            🛒 Buy List
+        </a>
+        <a href="{{ url_for('wishlist') }}" class="nav-pill {% if request.path == url_for('wishlist') %}active{% endif %}">
+            ✨ Wishlist
+        </a>
+        <a href="{{ url_for('logout') }}" class="nav-pill logout">
+            🚪 Logout
+        </a>
+    </nav>
+    {% endif %}
+
+    <!-- Main Content Area -->
+    <main class="page-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, msg in messages %}
+                    <div class="alert alert-{{ category }}">{{ msg }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Floating Clouds Footer -->
+    <footer class="clouds-container">
+        {% for _ in range(3) %}
+        <svg class="cloud" viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 22,50 
+                     L 78,50 
+                     A 14,14 0 0 0 88,32 
+                     A 16,16 0 0 0 70,14 
+                     A 24,24 0 0 0 32,16 
+                     A 16,16 0 0 0 14,34 
+                     A 13,13 0 0 0 22,50 Z" 
+                  fill="#ffffff" 
+                  stroke="#000000" 
+                  stroke-width="3.5" 
+                  stroke-linejoin="round" 
+                  stroke-linecap="round"/>
+        </svg>
+        {% endfor %}
+    </footer>
+</body>
+</html>
