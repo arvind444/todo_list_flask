@@ -4,6 +4,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, date
 import os
+import ssl
 import pymysql
 from dotenv import load_dotenv
 
@@ -19,6 +20,20 @@ app.config['SESSION_COOKIE_HTTPONLY'] = os.getenv("SESSION_COOKIE_HTTPONLY")
 app.config['SESSION_COOKIE_SAMESITE'] = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
 app.config['PERMANENT_SESSION_LIFETIME'] = os.getenv("PERMANENT_SESSION_LIFETIME", )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = os.getenv("SQLALCHEMY_TRACK_MODIFICATIONS")
+
+ssl_context = ssl.create_default_context()
+ssl_context.check_hostname = False
+ssl_context.verify_mode = ssl.CERT_NONE
+
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_size': 5,
+    'max_overflow': 10,
+    'pool_recycle': 280,
+    'pool_pre_ping': True,
+    'connect_args': {
+        'ssl': ssl_context
+    }
+}
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
@@ -112,7 +127,7 @@ def register():
             flash('Username is already taken.', 'error')
             return redirect(url_for('register'))
             
-        hashed_password = generate_password_hash(password, method='scrypt')
+        hashed_password = generate_password_hash(password)
         new_user = User(username=username, password_hash=hashed_password)
         db.session.add(new_user)
         db.session.commit()
